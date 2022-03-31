@@ -1,6 +1,6 @@
 package kv
 
-// Key-Value Store
+// KV is a Key-Value Store
 type KV interface {
 	// Set sets the value for the given key.
 	Set(key string, value interface{}) error
