@@ -1,39 +1,38 @@
 package memory
 
-// MemoryKV is a Memory Key-Value Store，like JavaScript Map for Go
-type MemoryKV map[string]interface{}
+// Memory is a Memory Key-Value Store，like JavaScript Map for Go
+type Memory map[string]interface{}
 
-// MemoryKVEntry is a key-value pair.
-type MemoryKVEntry struct {
-	Key   string
-	Value interface{}
+// New returns a new MemoryKV.
+func New() Memory {
+	return make(Memory)
 }
 
 // Set sets the value for the given key.
-func (m MemoryKV) Set(key string, value interface{}) error {
+func (m Memory) Set(key string, value interface{}) error {
 	m[key] = value
 	return nil
 }
 
 // Get returns the value for the given key.
-func (m MemoryKV) Get(key string) interface{} {
+func (m Memory) Get(key string) interface{} {
 	return m[key]
 }
 
 // Delete deletes the value for the given key.
-func (m MemoryKV) Delete(key string) error {
+func (m Memory) Delete(key string) error {
 	delete(m, key)
 	return nil
 }
 
 // Has returns true if the given key exists in the kv.
-func (m MemoryKV) Has(key string) bool {
+func (m Memory) Has(key string) bool {
 	_, ok := m[key]
 	return ok
 }
 
 // Keys returns the keys of the kv.
-func (m MemoryKV) Keys() []string {
+func (m Memory) Keys() []string {
 	keys := make([]string, len(m))
 	i := 0
 	for k := range m {
@@ -44,7 +43,7 @@ func (m MemoryKV) Keys() []string {
 }
 
 // Values returns the values of the kv.
-func (m MemoryKV) Values() []interface{} {
+func (m Memory) Values() []interface{} {
 	values := make([]interface{}, len(m))
 	i := 0
 	for _, v := range m {
@@ -54,24 +53,13 @@ func (m MemoryKV) Values() []interface{} {
 	return values
 }
 
-// Entries is an iterator for MapEntry.
-func (m MemoryKV) Entries() []MemoryKVEntry {
-	entries := make([]MemoryKVEntry, len(m))
-	i := 0
-	for k, v := range m {
-		entries[i] = MemoryKVEntry{k, v}
-		i++
-	}
-	return entries
-}
-
 // Size returns the number of elements in the kv.
-func (m MemoryKV) Size() int {
+func (m Memory) Size() int {
 	return len(m)
 }
 
 // Clear removes all elements from the kv.
-func (m MemoryKV) Clear() error {
+func (m Memory) Clear() error {
 	for k := range m {
 		delete(m, k)
 	}
@@ -79,7 +67,7 @@ func (m MemoryKV) Clear() error {
 }
 
 // ForEach calls the given function for each key-value pair in the kv.
-func (m MemoryKV) ForEach(f func(string, interface{})) {
+func (m Memory) ForEach(f func(string, interface{})) {
 	for k, v := range m {
 		f(k, v)
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 func TestMapGetSet(t *testing.T) {
-	m := MemoryKV{}
+	m := Memory{}
 	if m.Size() != 0 {
 		t.Errorf("Expected size 0, got %d", m.Size())
 	}
@@ -23,7 +23,7 @@ func TestMapGetSet(t *testing.T) {
 }
 
 func TestMapDeleteClear(t *testing.T) {
-	m := MemoryKV{}
+	m := Memory{}
 	m.Set("key", "value")
 	m.Delete("key")
 	if m.Has("key") {
@@ -40,7 +40,7 @@ func TestMapDeleteClear(t *testing.T) {
 }
 
 func TestMapKeysValues(t *testing.T) {
-	m := MemoryKV{}
+	m := Memory{}
 	m.Set("key1", "value1")
 	m.Set("key2", "value2")
 	m.Set("key3", "value3")
@@ -71,7 +71,7 @@ func TestMapKeysValues(t *testing.T) {
 }
 
 func TestMapForEach(t *testing.T) {
-	m := MemoryKV{}
+	m := Memory{}
 	m.Set("key1", "value1")
 	m.Set("key2", "value2")
 	m.Set("key3", "value3")
@@ -86,30 +86,4 @@ func TestMapForEach(t *testing.T) {
 			t.Error("Expected value to be 'value3'")
 		}
 	})
-}
-
-func TestMapEntries(t *testing.T) {
-	m := MemoryKV{}
-	m.Set("key1", "value1")
-	m.Set("key2", "value2")
-	m.Set("key3", "value3")
-	entries := m.Entries()
-	if len(entries) != 3 {
-		t.Errorf("Expected len 3, got %d", len(entries))
-	}
-	sort.Slice(entries, func(i, j int) bool {
-		return strings.Compare(entries[i].Key, entries[j].Key) < 0
-	})
-	entriesKeys := []string{}
-	entriesValues := []string{}
-	for _, e := range entries {
-		entriesKeys = append(entriesKeys, e.Key)
-		entriesValues = append(entriesValues, e.Value.(string))
-	}
-	if strings.Join(entriesKeys, ",") != "key1,key2,key3" {
-		t.Errorf("Expected keys to be key1,key2,key3, got %v", strings.Join(entriesKeys, ","))
-	}
-	if strings.Join(entriesValues, ",") != "value1,value2,value3" {
-		t.Errorf("Expected values to be value1,value2,value3, got %v", strings.Join(entriesValues, ","))
-	}
 }
