@@ -1,4 +1,4 @@
-package jmap
+package memory
 
 import (
 	"sort"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestMapGetSet(t *testing.T) {
-	m := Map{}
+	m := MemoryKV{}
 	if m.Size() != 0 {
 		t.Errorf("Expected size 0, got %d", m.Size())
 	}
@@ -23,7 +23,7 @@ func TestMapGetSet(t *testing.T) {
 }
 
 func TestMapDeleteClear(t *testing.T) {
-	m := Map{}
+	m := MemoryKV{}
 	m.Set("key", "value")
 	m.Delete("key")
 	if m.Has("key") {
@@ -40,7 +40,7 @@ func TestMapDeleteClear(t *testing.T) {
 }
 
 func TestMapKeysValues(t *testing.T) {
-	m := Map{}
+	m := MemoryKV{}
 	m.Set("key1", "value1")
 	m.Set("key2", "value2")
 	m.Set("key3", "value3")
@@ -71,7 +71,7 @@ func TestMapKeysValues(t *testing.T) {
 }
 
 func TestMapForEach(t *testing.T) {
-	m := Map{}
+	m := MemoryKV{}
 	m.Set("key1", "value1")
 	m.Set("key2", "value2")
 	m.Set("key3", "value3")
@@ -89,7 +89,7 @@ func TestMapForEach(t *testing.T) {
 }
 
 func TestMapEntries(t *testing.T) {
-	m := Map{}
+	m := MemoryKV{}
 	m.Set("key1", "value1")
 	m.Set("key2", "value2")
 	m.Set("key3", "value3")
