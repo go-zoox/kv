@@ -1,11 +1,15 @@
 package memory
 
 import (
+	"sync"
 	"time"
 )
 
 // Memory is a Key-Value Store in Memory，like JavaScript Map for Go
-type Memory map[string]interface{}
+type Memory struct {
+	sync.RWMutex
+	data map[string]interface{}
+}
 
 // Value is a value of Memory
 type Value struct {
@@ -15,7 +19,9 @@ type Value struct {
 
 // New returns a new MemoryKV.
 func New() *Memory {
-	return &Memory{}
+	return &Memory{
+		data: make(map[string]interface{}),
+	}
 }
 
 func now() int64 {
@@ -24,25 +30,31 @@ func now() int64 {
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m Memory) Set(key string, value interface{}, maxAge ...int64) error {
+func (m *Memory) Set(key string, value interface{}, maxAge ...int64) error {
+	m.Lock()
+	defer m.Unlock()
+
 	expiresAt := int64(0)
 	if len(maxAge) > 0 {
 		expiresAt = now() + maxAge[0]
 	}
 
-	m[key] = Value{value, expiresAt}
+	m.data[key] = Value{value, expiresAt}
 	return nil
 }
 
 // Get returns the value for the given key.
-func (m Memory) Get(key string) interface{} {
+func (m *Memory) Get(key string) interface{} {
+	m.RLock()
+	defer m.RUnlock()
+
 	if !m.Has(key) {
 		return nil
 	}
 
-	v := m[key].(Value)
+	v := m.data[key].(Value)
 	if v.ExpiresAt > 0 && v.ExpiresAt < now() {
-		delete(m, key)
+		delete(m.data, key)
 		return nil
 	}
 
@@ -50,21 +62,27 @@ func (m Memory) Get(key string) interface{} {
 }
 
 // Delete deletes the value for the given key.
-func (m Memory) Delete(key string) error {
-	delete(m, key)
+func (m *Memory) Delete(key string) error {
+	m.Lock()
+	defer m.Unlock()
+
+	delete(m.data, key)
 	return nil
 }
 
 // Has returns true if the given key exists in the kv.
-func (m Memory) Has(key string) bool {
-	_, ok := m[key]
+func (m *Memory) Has(key string) bool {
+	m.RLock()
+	defer m.RUnlock()
+
+	_, ok := m.data[key]
 	if !ok {
 		return false
 	}
 
-	v := m[key].(Value)
+	v := m.data[key].(Value)
 	if v.ExpiresAt > 0 && v.ExpiresAt < now() {
-		delete(m, key)
+		delete(m.data, key)
 		return false
 	}
 
@@ -72,43 +90,44 @@ func (m Memory) Has(key string) bool {
 }
 
 // Keys returns the keys of the kv.
-func (m Memory) Keys() []string {
-	keys := make([]string, len(m))
+func (m *Memory) Keys() []string {
+	m.RLock()
+	defer m.RUnlock()
+
+	keys := make([]string, len(m.data))
 	i := 0
-	for k := range m {
+	for k := range m.data {
 		keys[i] = k
 		i++
 	}
 	return keys
 }
 
-// Values returns the values of the kv.
-func (m Memory) Values() []interface{} {
-	values := make([]interface{}, len(m))
-	i := 0
-	for _, v := range m {
-		values[i] = v.(Value).Value
-		i++
-	}
-	return values
-}
-
 // Size returns the number of elements in the kv.
-func (m Memory) Size() int {
-	return len(m)
+func (m *Memory) Size() int {
+	m.RLock()
+	defer m.RUnlock()
+
+	return len(m.data)
 }
 
 // Clear removes all elements from the kv.
-func (m Memory) Clear() error {
-	for k := range m {
-		delete(m, k)
+func (m *Memory) Clear() error {
+	m.Lock()
+	defer m.Unlock()
+
+	for k := range m.data {
+		delete(m.data, k)
 	}
 	return nil
 }
 
 // ForEach calls the given function for each key-value pair in the kv.
-func (m Memory) ForEach(f func(string, interface{})) {
-	for k, v := range m {
+func (m *Memory) ForEach(f func(string, interface{})) {
+	m.RLock()
+	defer m.RUnlock()
+
+	for k, v := range m.data {
 		f(k, v.(Value).Value)
 	}
 }

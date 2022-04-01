@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	goredis "github.com/go-redis/redis/v8"
@@ -11,6 +12,7 @@ import (
 
 // Redis is a Key-Value Store in Redis
 type Redis struct {
+	sync.RWMutex
 	Core   *goredis.Client
 	Ctx    context.Context
 	Config *RedisConfig
@@ -60,16 +62,23 @@ func New(cfg *RedisConfig) (*Redis, error) {
 
 	// @TODO
 	ctx := context.Background()
-	return &Redis{core, ctx, cfg}, nil
+	return &Redis{
+		Core:   core,
+		Ctx:    ctx,
+		Config: cfg,
+	}, nil
 }
 
-func (m Redis) getKey(key string) string {
+func (m *Redis) getKey(key string) string {
 	return m.Config.Prefix + key
 }
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m Redis) Set(key string, value interface{}, maxAge ...int64) error {
+func (m *Redis) Set(key string, value interface{}, maxAge ...int64) error {
+	m.Lock()
+	defer m.Unlock()
+
 	maxAgeX := 0
 	if len(maxAge) > 0 {
 		maxAgeX = int(maxAge[0])
@@ -84,18 +93,27 @@ func (m Redis) Set(key string, value interface{}, maxAge ...int64) error {
 }
 
 // Get returns the value for the given key.
-func (m Redis) Get(key string) interface{} {
+func (m *Redis) Get(key string) interface{} {
+	m.RLock()
+	defer m.RUnlock()
+
 	keyX := m.getKey(key)
 	return m.Core.Get(m.Ctx, keyX).Val()
 }
 
 // Delete deletes the value for the given key.
-func (m Redis) Delete(key string) error {
+func (m *Redis) Delete(key string) error {
+	m.Lock()
+	defer m.Unlock()
+
 	return m.Core.Del(m.Ctx, m.getKey(key)).Err()
 }
 
 // Has returns true if the given key exists in the kv.
-func (m Redis) Has(key string) bool {
+func (m *Redis) Has(key string) bool {
+	m.RLock()
+	defer m.RUnlock()
+
 	length, err := m.Core.Exists(m.Ctx, m.getKey(key)).Result()
 	if err != nil {
 		panic(err)
@@ -105,7 +123,10 @@ func (m Redis) Has(key string) bool {
 }
 
 // Keys returns the keys of the kv.
-func (m Redis) Keys() []string {
+func (m *Redis) Keys() []string {
+	m.RLock()
+	defer m.RUnlock()
+
 	res := m.Core.Keys(m.Ctx, m.Config.Prefix+"*")
 	if res.Err() != nil {
 		panic(res.Err())
@@ -118,27 +139,38 @@ func (m Redis) Keys() []string {
 	return keys
 }
 
-// Values returns the values of the kv.
-func (m Redis) Values() []interface{} {
-	panic("no implemented")
-}
-
 // Size returns the number of elements in the kv.
-func (m Redis) Size() int {
+func (m *Redis) Size() int {
+	m.RLock()
+	defer m.RUnlock()
+
 	return len(m.Keys())
 }
 
 // Clear removes all elements from the kv.
-func (m Redis) Clear() error {
+func (m *Redis) Clear() error {
 	keys := m.Keys()
+	if len(keys) == 0 {
+		return nil
+	}
+
+	m.Lock()
+	defer m.Unlock()
+
 	for _, key := range keys {
-		m.Delete(key)
+		// m.Delete(key)
+		if err := m.Core.Del(m.Ctx, m.getKey(key)).Err(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 // ForEach calls the given function for each key-value pair in the kv.
-func (m Redis) ForEach(f func(string, interface{})) {
+func (m *Redis) ForEach(f func(string, interface{})) {
+	m.RLock()
+	defer m.RUnlock()
+
 	keys := m.Keys()
 	for _, key := range keys {
 		f(key, m.Get(key))

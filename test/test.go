@@ -20,6 +20,8 @@ func RunTestCases(t *testing.T, client typing.KV) {
 }
 
 func RunMainTestCase(t *testing.T, client typing.KV) {
+	t.Log("Testing main test case")
+
 	if err := client.Clear(); err != nil {
 		t.Fatal(err)
 	}
@@ -70,6 +72,8 @@ func RunMainTestCase(t *testing.T, client typing.KV) {
 }
 
 func RunKeysTestCase(t *testing.T, client typing.KV) {
+	t.Log("Testing keys test case")
+
 	if err := client.Clear(); err != nil {
 		t.Fatal(err)
 	}
@@ -97,6 +101,8 @@ func RunKeysTestCase(t *testing.T, client typing.KV) {
 }
 
 func RunForEachTestCase(t *testing.T, client typing.KV) {
+	t.Log("Testing forEach test case")
+
 	if err := client.Clear(); err != nil {
 		t.Fatal(err)
 	}
@@ -125,6 +131,8 @@ func RunForEachTestCase(t *testing.T, client typing.KV) {
 }
 
 func RunMaxAgeTestCase(t *testing.T, client typing.KV) {
+	t.Log("Testing max age test case")
+
 	client.Clear()
 	defer client.Clear()
 
