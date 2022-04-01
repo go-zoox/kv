@@ -27,11 +27,5 @@ func createClient() *Redis {
 }
 
 func TestKV(t *testing.T) {
-	client := createClient()
-	client.Clear()
-	defer client.Clear()
-
-	test.RunMainTestCase(t, client)
-	test.RunKeysTestCase(t, client)
-	test.RunForEachTestCase(t, client)
+	test.RunTestCases(t, createClient())
 }

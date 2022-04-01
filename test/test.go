@@ -4,9 +4,20 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-zoox/kv/typing"
 )
+
+func RunTestCases(t *testing.T, client typing.KV) {
+	client.Clear()
+	defer client.Clear()
+
+	RunMainTestCase(t, client)
+	RunKeysTestCase(t, client)
+	RunForEachTestCase(t, client)
+	RunMaxAgeTestCase(t, client)
+}
 
 func RunMainTestCase(t *testing.T, client typing.KV) {
 	if err := client.Clear(); err != nil {
@@ -111,4 +122,19 @@ func RunForEachTestCase(t *testing.T, client typing.KV) {
 			t.Error("Expected value to be 'value3'")
 		}
 	})
+}
+
+func RunMaxAgeTestCase(t *testing.T, client typing.KV) {
+	client.Clear()
+	defer client.Clear()
+
+	client.Set("key1", "value1", 500)
+	if client.Get("key1") != "value1" {
+		t.Error("Expected value to be 'value1'")
+	}
+
+	time.Sleep(2 * time.Second)
+	if client.Has("key1") {
+		t.Errorf("Expected value to be '', but got %s", client.Get("key1"))
+	}
 }

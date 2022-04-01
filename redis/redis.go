@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	goredis "github.com/go-redis/redis/v8"
 )
@@ -67,8 +68,18 @@ func (m Redis) getKey(key string) string {
 }
 
 // Set sets the value for the given key.
-func (m Redis) Set(key string, value interface{}) error {
+// If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
+func (m Redis) Set(key string, value interface{}, maxAge ...int64) error {
+	maxAgeX := 0
+	if len(maxAge) > 0 {
+		maxAgeX = int(maxAge[0])
+	}
+
 	keyX := m.getKey(key)
+	if maxAgeX > 0 {
+		return m.Core.Set(m.Ctx, keyX, value, time.Duration(maxAgeX)*time.Millisecond).Err()
+	}
+
 	return m.Core.Set(m.Ctx, keyX, value, 0).Err()
 }
 
