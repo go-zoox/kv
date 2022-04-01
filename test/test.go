@@ -10,36 +10,35 @@ import (
 )
 
 // RunTestCases runs all test cases.
-func RunTestCases(t *testing.T, client typing.KV, cases ...[]string) {
+func RunTestCases(t *testing.T, client typing.KV, casesDisabled ...[]string) {
 	client.Clear()
 	defer client.Clear()
 
-	casesX := map[string]bool{
+	casesDisabledX := map[string]bool{
 		"main":    true,
 		"keys":    true,
 		"forEach": true,
 		"maxAge":  true,
 	}
-	if len(cases) > 0 {
-		casesX = map[string]bool{}
-		for _, c := range cases[0] {
-			casesX[c] = true
+	if len(casesDisabled) > 0 {
+		for _, c := range casesDisabled[0] {
+			casesDisabledX[c] = false
 		}
 	}
 
-	if casesX["main"] {
+	if casesDisabledX["main"] {
 		RunMainTestCase(t, client)
 	}
 
-	if casesX["keys"] {
+	if casesDisabledX["keys"] {
 		RunKeysTestCase(t, client)
 	}
 
-	if casesX["forEach"] {
+	if casesDisabledX["forEach"] {
 		RunForEachTestCase(t, client)
 	}
 
-	if casesX["maxAge"] {
+	if casesDisabledX["maxAge"] {
 		RunMaxAgeTestCase(t, client)
 	}
 }

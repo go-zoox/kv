@@ -19,5 +19,5 @@ func createClient() *SQLite {
 }
 
 func TestKV(t *testing.T) {
-	test.RunTestCases(t, createClient(), []string{"main", "keys", "forEach"})
+	test.RunTestCases(t, createClient(), []string{"maxAge"})
 }

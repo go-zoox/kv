@@ -19,3 +19,9 @@ type KV interface {
 	// ForEach iterates over the map and calls the given function for each entry.
 	ForEach(func(key string, value interface{}))
 }
+
+// Config is the configuration used to create a new KV.
+type Config struct {
+	Engine string
+	Config interface{}
+}

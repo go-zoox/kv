@@ -1,19 +1,36 @@
 package kv
 
-import "testing"
+import (
+	"testing"
 
-func TestKVMemory(t *testing.T) {
-	m := NewMemory()
-	if m.Size() != 0 {
-		t.Errorf("Expected size 0, got %d", m.Size())
+	"github.com/go-zoox/kv/typing"
+)
+
+func TestKV(t *testing.T) {
+	client, err := New(&typing.Config{
+		// Engine: "sqlite",
+		// Config: &sqlite.SQLiteConfig{
+		// 	Path:   "/tmp/test.db",
+		// 	Prefix: "go-zoox-test:",
+		// },
+		Engine: "memory",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	client.Clear()
+	defer client.Clear()
+
+	if client.Size() != 0 {
+		t.Errorf("Expected size 0, got %d", client.Size())
 	}
 
-	m.Set("key", "value")
-	if m.Get("key") != "value" {
+	client.Set("key", "value")
+	if client.Get("key") != "value" {
 		t.Error("Expected value to be 'value'")
 	}
 
-	if m.Size() != 1 {
-		t.Errorf("Expected size 1, got %d", m.Size())
+	if client.Size() != 1 {
+		t.Errorf("Expected size 1, got %d", client.Size())
 	}
 }
