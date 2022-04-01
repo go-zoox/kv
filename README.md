@@ -33,6 +33,15 @@ func TestMemoryKV(t *testing.T) {
 }
 ```
 
+## Engines
+* [x] Memory
+* [x] Redis
+* [ ] MongoDB
+* [ ] SQLite
+* [ ] PostgreSQL
+* [ ] MySQL
+* [ ] DynamoDB
+
 ## Inspired by
 * [srfrog/dict](https://github.com/srfrog/dict) - Python-like dictionaries for Go
 
