@@ -17,7 +17,7 @@ go get github.com/go-zoox/kv
 
 ```go
 func TestMemoryKV(t *testing.T) {
-	m := MemoryKV{}
+	m := kv.NewMemory()
 	if m.Size() != 0 {
 		t.Errorf("Expected size 0, got %d", m.Size())
 	}

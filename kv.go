@@ -1,5 +1,7 @@
 package kv
 
+import "github.com/go-zoox/map/memory"
+
 // KV is a Key-Value Store
 type KV interface {
 	// Set sets the value for the given key.
@@ -20,4 +22,9 @@ type KV interface {
 	Clear() error
 	// ForEach iterates over the map and calls the given function for each entry.
 	ForEach(func(key string, value interface{}))
+}
+
+// NewMemory returns a new Memory KV.
+func NewMemory() KV {
+	return &memory.Memory{}
 }
