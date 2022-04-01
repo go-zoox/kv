@@ -9,16 +9,42 @@ import (
 	"github.com/go-zoox/kv/typing"
 )
 
-func RunTestCases(t *testing.T, client typing.KV) {
+// RunTestCases runs all test cases.
+func RunTestCases(t *testing.T, client typing.KV, cases ...[]string) {
 	client.Clear()
 	defer client.Clear()
 
-	RunMainTestCase(t, client)
-	RunKeysTestCase(t, client)
-	RunForEachTestCase(t, client)
-	RunMaxAgeTestCase(t, client)
+	casesX := map[string]bool{
+		"main":    true,
+		"keys":    true,
+		"forEach": true,
+		"maxAge":  true,
+	}
+	if len(cases) > 0 {
+		casesX = map[string]bool{}
+		for _, c := range cases[0] {
+			casesX[c] = true
+		}
+	}
+
+	if casesX["main"] {
+		RunMainTestCase(t, client)
+	}
+
+	if casesX["keys"] {
+		RunKeysTestCase(t, client)
+	}
+
+	if casesX["forEach"] {
+		RunForEachTestCase(t, client)
+	}
+
+	if casesX["maxAge"] {
+		RunMaxAgeTestCase(t, client)
+	}
 }
 
+// RunMainTestCase tests the main functionality.
 func RunMainTestCase(t *testing.T, client typing.KV) {
 	t.Log("Testing main test case")
 
@@ -71,6 +97,7 @@ func RunMainTestCase(t *testing.T, client typing.KV) {
 	}
 }
 
+// RunKeysTestCase tests the keys functionality.
 func RunKeysTestCase(t *testing.T, client typing.KV) {
 	t.Log("Testing keys test case")
 
@@ -100,6 +127,7 @@ func RunKeysTestCase(t *testing.T, client typing.KV) {
 	}
 }
 
+// RunForEachTestCase tests the ForEach functionality.
 func RunForEachTestCase(t *testing.T, client typing.KV) {
 	t.Log("Testing forEach test case")
 
@@ -130,18 +158,33 @@ func RunForEachTestCase(t *testing.T, client typing.KV) {
 	})
 }
 
+// RunMaxAgeTestCase tests the maxAge functionality.
 func RunMaxAgeTestCase(t *testing.T, client typing.KV) {
 	t.Log("Testing max age test case")
 
 	client.Clear()
 	defer client.Clear()
 
-	client.Set("key1", "value1", 500)
+	if err := client.Set("key1", "value1", 500); err != nil {
+		t.Fatal(err)
+	}
+
 	if client.Get("key1") != "value1" {
 		t.Error("Expected value to be 'value1'")
 	}
 
+	// fmt.Println("xxx1:", client.Get("key1"))
 	time.Sleep(2 * time.Second)
+	// done := make(chan bool)
+	// go func() {
+	// 	fmt.Println("xxx2:", client.Get("key1"))
+	// 	time.Sleep(2 * time.Second)
+	// 	fmt.Println("xxx3:", client.Get("key1"))
+	// 	done <- true
+	// }()
+	// <-done
+	// fmt.Println("xxx4:", client.Get("key1"))
+
 	if client.Has("key1") {
 		t.Errorf("Expected value to be '', but got %s", client.Get("key1"))
 	}
