@@ -8,15 +8,17 @@ import (
 )
 
 func createClient() *Redis {
-	var cfg struct {
-		URI string `env:"REDIS_URI"`
-	}
-	if err := dotenv.Load(&cfg); err != nil {
-		panic(err)
-	}
+	// var cfg struct {
+	// 	URI string `env:"REDIS_URI"`
+	// }
+	// if err := dotenv.Load(&cfg); err != nil {
+	// 	panic(err)
+	// }
+
+	redisURI := dotenv.Get("REDIS_URI", "redis://localhost:6379")
 
 	client, err := New(&RedisConfig{
-		URI:    cfg.URI,
+		URI:    redisURI,
 		Prefix: "go-zoox-test:",
 	})
 	if err != nil {
