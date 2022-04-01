@@ -1,11 +1,11 @@
 package memory
 
-// Memory is a Memory Key-Value Store，like JavaScript Map for Go
+// Memory is a Key-Value Store in Memory，like JavaScript Map for Go
 type Memory map[string]interface{}
 
 // New returns a new MemoryKV.
-func New() Memory {
-	return make(Memory)
+func New() *Memory {
+	return &Memory{}
 }
 
 // Set sets the value for the given key.

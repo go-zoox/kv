@@ -1,0 +1,114 @@
+package test
+
+import (
+	"sort"
+	"strings"
+	"testing"
+
+	"github.com/go-zoox/kv/typing"
+)
+
+func RunMainTestCase(t *testing.T, client typing.KV) {
+	if err := client.Clear(); err != nil {
+		t.Fatal(err)
+	}
+
+	if client.Size() != 0 {
+		t.Errorf("Expected size 0, got %d", client.Size())
+	}
+
+	if err := client.Set("key", "value"); err != nil {
+		t.Fatal(err)
+	}
+	if !client.Has("key") {
+		t.Error("Expected key to be set")
+	}
+	if client.Size() != 1 {
+		t.Errorf("Expected size 1, got %d", client.Size())
+	}
+
+	if err := client.Delete("key"); err != nil {
+		t.Fatal(err)
+	}
+	if client.Has("key") {
+		t.Error("Expected key to be deleted")
+	}
+	if client.Size() != 0 {
+		t.Errorf("Expected size 0, got %d", client.Size())
+	}
+
+	if err := client.Set("key", "value"); err != nil {
+		t.Fatal(err)
+	}
+	if client.Size() != 1 {
+		t.Errorf("Expected size 1, got %d", client.Size())
+	}
+	if err := client.Set("key2", "value2"); err != nil {
+		t.Fatal(err)
+	}
+	if client.Size() != 2 {
+		t.Errorf("Expected size 1, got %d", client.Size())
+	}
+
+	if err := client.Clear(); err != nil {
+		t.Fatal(err)
+	}
+	if client.Size() != 0 {
+		t.Errorf("Expected size 0, got %d", client.Size())
+	}
+}
+
+func RunKeysTestCase(t *testing.T, client typing.KV) {
+	if err := client.Clear(); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := client.Set("key1", "value1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := client.Set("key2", "value2"); err != nil {
+		t.Fatal(err)
+	}
+	if err := client.Set("key3", "value3"); err != nil {
+		t.Fatal(err)
+	}
+
+	keys := client.Keys()
+	if len(keys) != 3 {
+		t.Errorf("Expected len 3, got %d", len(keys))
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return strings.Compare(keys[i], keys[j]) < 0
+	})
+	if strings.Join(keys, ",") != "key1,key2,key3" {
+		t.Errorf("Expected keys to be key1,key2,key3, got %v", strings.Join(keys, ","))
+	}
+}
+
+func RunForEachTestCase(t *testing.T, client typing.KV) {
+	if err := client.Clear(); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := client.Set("key1", "value1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := client.Set("key2", "value2"); err != nil {
+		t.Fatal(err)
+	}
+	if err := client.Set("key3", "value3"); err != nil {
+		t.Fatal(err)
+	}
+
+	client.ForEach(func(key string, value interface{}) {
+		if key == "key1" && value != "value1" {
+			t.Error("Expected value to be 'value1'")
+		}
+		if key == "key2" && value != "value2" {
+			t.Error("Expected value to be 'value2'")
+		}
+		if key == "key3" && value != "value3" {
+			t.Error("Expected value to be 'value3'")
+		}
+	})
+}

@@ -1,0 +1,135 @@
+package redis
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	goredis "github.com/go-redis/redis/v8"
+)
+
+// Redis is a Key-Value Store in Redis
+type Redis struct {
+	Core   *goredis.Client
+	Ctx    context.Context
+	Config *RedisConfig
+}
+
+// RedisConfig is the configuration for Redis
+type RedisConfig struct {
+	// Host is the host of the Redis server
+	Host string
+	// Port is the port of the Redis server
+	Port int
+	// Password is the password for the Redis server
+	Password string
+	// DB is the database to use
+	DB int
+
+	// URI is the URI of the Redis server
+	// such as redis://:password@host:port/db
+	URI string
+
+	// Prefix is the prefix to use for all keys
+	Prefix string
+}
+
+// New returns a new MemoryKV.
+func New(cfg *RedisConfig) (*Redis, error) {
+	var core *goredis.Client
+	if cfg.URI != "" {
+		opt, err := goredis.ParseURL(cfg.URI)
+		if err != nil {
+			return nil, err
+		}
+		core = goredis.NewClient(opt)
+	} else if cfg.Host != "" && cfg.Port != 0 {
+		core = goredis.NewClient(&goredis.Options{
+			Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+			Password: cfg.Password,
+			DB:       cfg.DB,
+		})
+	} else {
+		return nil, fmt.Errorf("redis URI or Host and Port are required")
+	}
+
+	if cfg.Prefix == "" {
+		return nil, errors.New("prefix is required")
+	}
+
+	// @TODO
+	ctx := context.Background()
+	return &Redis{core, ctx, cfg}, nil
+}
+
+func (m Redis) getKey(key string) string {
+	return m.Config.Prefix + key
+}
+
+// Set sets the value for the given key.
+func (m Redis) Set(key string, value interface{}) error {
+	keyX := m.getKey(key)
+	return m.Core.Set(m.Ctx, keyX, value, 0).Err()
+}
+
+// Get returns the value for the given key.
+func (m Redis) Get(key string) interface{} {
+	keyX := m.getKey(key)
+	return m.Core.Get(m.Ctx, keyX).Val()
+}
+
+// Delete deletes the value for the given key.
+func (m Redis) Delete(key string) error {
+	return m.Core.Del(m.Ctx, m.getKey(key)).Err()
+}
+
+// Has returns true if the given key exists in the kv.
+func (m Redis) Has(key string) bool {
+	length, err := m.Core.Exists(m.Ctx, m.getKey(key)).Result()
+	if err != nil {
+		panic(err)
+	}
+
+	return length != 0
+}
+
+// Keys returns the keys of the kv.
+func (m Redis) Keys() []string {
+	res := m.Core.Keys(m.Ctx, m.Config.Prefix+"*")
+	if res.Err() != nil {
+		panic(res.Err())
+	}
+
+	keys := make([]string, len(res.Val()))
+	for i, k := range res.Val() {
+		keys[i] = k[len(m.Config.Prefix):]
+	}
+	return keys
+}
+
+// Values returns the values of the kv.
+func (m Redis) Values() []interface{} {
+	panic("no implemented")
+}
+
+// Size returns the number of elements in the kv.
+func (m Redis) Size() int {
+	return len(m.Keys())
+}
+
+// Clear removes all elements from the kv.
+func (m Redis) Clear() error {
+	keys := m.Keys()
+	for _, key := range keys {
+		m.Delete(key)
+	}
+	return nil
+}
+
+// ForEach calls the given function for each key-value pair in the kv.
+func (m Redis) ForEach(f func(string, interface{})) {
+	keys := m.Keys()
+	for _, key := range keys {
+		f(key, m.Get(key))
+	}
+}
