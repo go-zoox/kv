@@ -8,7 +8,7 @@ import (
 
 func createClient() *SQLite {
 	client, err := New(&SQLiteConfig{
-		Path:   "./test.db",
+		Path:   "/tmp/test.db",
 		Prefix: "go-zoox-test:",
 	})
 	if err != nil {

@@ -37,7 +37,7 @@ func TestMemoryKV(t *testing.T) {
 * [x] Memory
 * [x] Redis
 * [ ] MongoDB
-* [ ] SQLite
+* [x] SQLite
 * [ ] PostgreSQL
 * [ ] MySQL
 * [ ] DynamoDB
