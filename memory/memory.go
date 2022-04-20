@@ -48,6 +48,7 @@ func (m *Memory) Get(key string) interface{} {
 	m.RLock()
 
 	if !m.Has(key) {
+		m.RUnlock()
 		return nil
 	}
 
@@ -77,6 +78,7 @@ func (m *Memory) Has(key string) bool {
 
 	_, ok := m.data[key]
 	if !ok {
+		m.RUnlock()
 		return false
 	}
 
