@@ -46,15 +46,16 @@ func (m *Memory) Set(key string, value interface{}, maxAge ...int64) error {
 // Get returns the value for the given key.
 func (m *Memory) Get(key string) interface{} {
 	m.RLock()
-	defer m.RUnlock()
 
 	if !m.Has(key) {
 		return nil
 	}
 
 	v := m.data[key].(Value)
+	m.RUnlock()
+
 	if v.ExpiresAt > 0 && v.ExpiresAt < now() {
-		delete(m.data, key)
+		m.Delete(key)
 		return nil
 	}
 
@@ -73,7 +74,6 @@ func (m *Memory) Delete(key string) error {
 // Has returns true if the given key exists in the kv.
 func (m *Memory) Has(key string) bool {
 	m.RLock()
-	defer m.RUnlock()
 
 	_, ok := m.data[key]
 	if !ok {
@@ -81,6 +81,8 @@ func (m *Memory) Has(key string) bool {
 	}
 
 	v := m.data[key].(Value)
+	m.RUnlock()
+
 	if v.ExpiresAt > 0 && v.ExpiresAt < now() {
 		delete(m.data, key)
 		return false
