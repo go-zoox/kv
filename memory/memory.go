@@ -13,7 +13,7 @@ type Memory struct {
 
 // Value is a value of Memory
 type Value struct {
-	Value     interface{}
+	Value     string
 	ExpiresAt int64
 }
 
@@ -49,7 +49,7 @@ func (m *Memory) Get(key string) string {
 
 	if !m.Has(key) {
 		m.RUnlock()
-		return nil
+		return ""
 	}
 
 	v := m.data[key].(Value)
@@ -57,7 +57,7 @@ func (m *Memory) Get(key string) string {
 
 	if v.ExpiresAt > 0 && v.ExpiresAt < now() {
 		m.Delete(key)
-		return nil
+		return ""
 	}
 
 	return v.Value

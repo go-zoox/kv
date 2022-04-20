@@ -2,18 +2,24 @@ package kv
 
 import "fmt"
 
+// ErrUnknownEngine means unknown engine error.
 const ErrUnknownEngine = "unknown engine: %s"
+
+// ErrConfigNotSet means config not set error.
 const ErrConfigNotSet = "%s config not set"
 
-type KVError struct {
+// Error is the error type for KV.
+type Error struct {
 	Type    string
 	Message string
 }
 
-func NewError(typ string, message string) *KVError {
-	return &KVError{typ, message}
+// NewError returns a new KVError.
+func NewError(typ string, message string) *Error {
+	return &Error{typ, message}
 }
 
-func (e *KVError) Error() string {
+// Error returns the error message.
+func (e *Error) Error() string {
 	return fmt.Sprintf(e.Type, e.Message)
 }

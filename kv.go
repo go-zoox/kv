@@ -7,6 +7,7 @@ import (
 	"github.com/go-zoox/kv/typing"
 )
 
+// New returns a new KV.
 func New(cfg *typing.Config) (typing.KV, error) {
 	switch cfg.Engine {
 	case "memory":
