@@ -3,9 +3,9 @@ package typing
 // KV is a Key-Value Store
 type KV interface {
 	// Set sets the value for the given key.
-	Set(key string, value interface{}, maxAge ...int64) error
+	Set(key string, value string, maxAge ...int64) error
 	// Get returns the value for the given key.
-	Get(key string) interface{}
+	Get(key string) string
 	// Delete deletes the value for the given key.
 	Delete(key string) error
 	// Has returns true if the given key exists in the kv.

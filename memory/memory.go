@@ -30,7 +30,7 @@ func now() int64 {
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m *Memory) Set(key string, value interface{}, maxAge ...int64) error {
+func (m *Memory) Set(key string, value string, maxAge ...int64) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -44,7 +44,7 @@ func (m *Memory) Set(key string, value interface{}, maxAge ...int64) error {
 }
 
 // Get returns the value for the given key.
-func (m *Memory) Get(key string) interface{} {
+func (m *Memory) Get(key string) string {
 	m.RLock()
 
 	if !m.Has(key) {
