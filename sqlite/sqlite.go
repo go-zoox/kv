@@ -62,7 +62,7 @@ func now() int64 {
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m *SQLite) Set(key string, value interface{}, maxAge ...int64) error {
+func (m *SQLite) Set(key string, value string, maxAge ...int64) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -88,9 +88,8 @@ func (m *SQLite) Set(key string, value interface{}, maxAge ...int64) error {
 }
 
 // Get returns the value for the given key.
-func (m *SQLite) Get(key string) interface{} {
+func (m *SQLite) Get(key string) string {
 	m.RLock()
-	defer m.RUnlock()
 
 	keyX := m.getKey(key)
 	stmt, err := m.Core.Prepare("SELECT value, expires_at FROM kv WHERE key = ?")
@@ -103,16 +102,18 @@ func (m *SQLite) Get(key string) interface{} {
 		panic(res.Err())
 	}
 
-	var value interface{}
+	var value string
 	var expiresAt int64
 	if err := res.Scan(&value, &expiresAt); err != nil {
 		// panic(err)
-		return nil
+		m.RUnlock()
+		return ""
 	}
 
+	m.RUnlock()
 	if expiresAt > 0 && expiresAt < now() {
 		m.Delete(key)
-		return nil
+		return ""
 	}
 
 	return value
