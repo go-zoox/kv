@@ -41,6 +41,7 @@ func TestMemoryKV(t *testing.T) {
 * [ ] PostgreSQL
 * [ ] MySQL
 * [ ] DynamoDB
+* [ ] JSONRPC
 
 ## Inspired by
 * [srfrog/dict](https://github.com/srfrog/dict) - Python-like dictionaries for Go
