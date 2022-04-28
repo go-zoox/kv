@@ -26,7 +26,8 @@ func TestKV(t *testing.T) {
 	}
 
 	client.Set("key", "value")
-	if client.Get("key") != "value" {
+	var value string
+	if err := client.Get("key", &value); err != nil || value != "value" {
 		t.Error("Expected value to be 'value'")
 	}
 
