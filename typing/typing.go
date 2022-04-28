@@ -3,9 +3,9 @@ package typing
 // KV is a Key-Value Store
 type KV interface {
 	// Set sets the value for the given key.
-	Set(key string, value string, maxAge ...int64) error
+	Set(key string, value any, maxAge ...int64) error
 	// Get returns the value for the given key.
-	Get(key string) string
+	Get(key string, value any) error
 	// Delete deletes the value for the given key.
 	Delete(key string) error
 	// Has returns true if the given key exists in the kv.
@@ -17,7 +17,7 @@ type KV interface {
 	// Clear clears the kv.
 	Clear() error
 	// ForEach iterates over the map and calls the given function for each entry.
-	ForEach(func(key string, value interface{}))
+	ForEach(func(key string, value any))
 }
 
 // Config is the configuration used to create a new KV.

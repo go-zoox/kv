@@ -168,7 +168,8 @@ func RunMaxAgeTestCase(t *testing.T, client typing.KV) {
 		t.Fatal(err)
 	}
 
-	if client.Get("key1") != "value1" {
+	var value string
+	if err := client.Get("key1", &value); err != nil || value != "value1" {
 		t.Error("Expected value to be 'value1'")
 	}
 
@@ -184,7 +185,8 @@ func RunMaxAgeTestCase(t *testing.T, client typing.KV) {
 	// <-done
 	// fmt.Println("xxx4:", client.Get("key1"))
 
+	client.Get("key1", &value)
 	if client.Has("key1") {
-		t.Errorf("Expected value to be '', but got %s", client.Get("key1"))
+		t.Errorf("Expected value to be '', but got %s", value)
 	}
 }

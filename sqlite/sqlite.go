@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"sync"
 	"time"
@@ -56,13 +57,26 @@ func (m *SQLite) getKey(key string) string {
 	return m.Config.Prefix + key
 }
 
+func (m *SQLite) encodeValue(value any) (string, error) {
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return "", err
+	}
+
+	return string(raw), nil
+}
+
+func (m *SQLite) decodeValue(data []byte, value any) error {
+	return json.Unmarshal(data, value)
+}
+
 func now() int64 {
 	return time.Now().Unix() * 1000
 }
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m *SQLite) Set(key string, value string, maxAge ...int64) error {
+func (m *SQLite) Set(key string, value any, maxAge ...int64) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -79,7 +93,11 @@ func (m *SQLite) Set(key string, value string, maxAge ...int64) error {
 		return err
 	}
 
-	_, err = stmt.Exec(keyX, value, expiresAt)
+	valueX, err := m.encodeValue(value)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(keyX, valueX, expiresAt)
 	if err != nil {
 		return err
 	}
@@ -88,7 +106,7 @@ func (m *SQLite) Set(key string, value string, maxAge ...int64) error {
 }
 
 // Get returns the value for the given key.
-func (m *SQLite) Get(key string) string {
+func (m *SQLite) Get(key string, value any) error {
 	m.RLock()
 
 	keyX := m.getKey(key)
@@ -102,21 +120,21 @@ func (m *SQLite) Get(key string) string {
 		panic(res.Err())
 	}
 
-	var value string
+	var valueX string
 	var expiresAt int64
-	if err := res.Scan(&value, &expiresAt); err != nil {
+	if err := res.Scan(&valueX, &expiresAt); err != nil {
 		// panic(err)
 		m.RUnlock()
-		return ""
+		return nil
 	}
 
 	m.RUnlock()
 	if expiresAt > 0 && expiresAt < now() {
 		m.Delete(key)
-		return ""
+		return nil
 	}
 
-	return value
+	return m.decodeValue([]byte(valueX), value)
 }
 
 // Delete deletes the value for the given key.
@@ -220,6 +238,11 @@ func (m *SQLite) ForEach(f func(string, interface{})) {
 
 	keys := m.Keys()
 	for _, key := range keys {
-		f(key, m.Get(key))
+		var value any
+		if err := m.Get(key, &value); err != nil {
+			f(key, nil)
+		} else {
+			f(key, value)
+		}
 	}
 }

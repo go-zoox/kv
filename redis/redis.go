@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -73,9 +74,22 @@ func (m *Redis) getKey(key string) string {
 	return m.Config.Prefix + key
 }
 
+func (m *Redis) encodeValue(value any) (string, error) {
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return "", err
+	}
+
+	return string(raw), nil
+}
+
+func (m *Redis) decodeValue(data []byte, value any) error {
+	return json.Unmarshal(data, value)
+}
+
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m *Redis) Set(key string, value string, maxAge ...int64) error {
+func (m *Redis) Set(key string, value any, maxAge ...int64) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -85,20 +99,26 @@ func (m *Redis) Set(key string, value string, maxAge ...int64) error {
 	}
 
 	keyX := m.getKey(key)
-	if maxAgeX > 0 {
-		return m.Core.Set(m.Ctx, keyX, value, time.Duration(maxAgeX)*time.Millisecond).Err()
+	valueX, err := m.encodeValue(value)
+	if err != nil {
+		return err
 	}
 
-	return m.Core.Set(m.Ctx, keyX, value, 0).Err()
+	if maxAgeX > 0 {
+		return m.Core.Set(m.Ctx, keyX, valueX, time.Duration(maxAgeX)*time.Millisecond).Err()
+	}
+
+	return m.Core.Set(m.Ctx, keyX, valueX, 0).Err()
 }
 
 // Get returns the value for the given key.
-func (m *Redis) Get(key string) string {
+func (m *Redis) Get(key string, value any) error {
 	m.RLock()
 	defer m.RUnlock()
 
 	keyX := m.getKey(key)
-	return m.Core.Get(m.Ctx, keyX).Val()
+	valueX := m.Core.Get(m.Ctx, keyX).Val()
+	return m.decodeValue([]byte(valueX), value)
 }
 
 // Delete deletes the value for the given key.
@@ -173,6 +193,11 @@ func (m *Redis) ForEach(f func(string, interface{})) {
 
 	keys := m.Keys()
 	for _, key := range keys {
-		f(key, m.Get(key))
+		var value any
+		if err := m.Get(key, &value); err != nil {
+			f(key, nil)
+		} else {
+			f(key, value)
+		}
 	}
 }
