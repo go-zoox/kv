@@ -1,6 +1,7 @@
 package kv
 
 import (
+	"github.com/go-zoox/kv/fs"
 	"github.com/go-zoox/kv/memory"
 	"github.com/go-zoox/kv/redis"
 	"github.com/go-zoox/kv/sqlite"
@@ -12,6 +13,14 @@ func New(cfg *typing.Config) (typing.KV, error) {
 	switch cfg.Engine {
 	case "memory":
 		return NewMemory(), nil
+
+	case "filesystem":
+		if cfg.Config == nil {
+			return NewFileSystem()
+		}
+
+		return NewFileSystem(cfg.Config.(*fs.FileSystemOptions))
+
 	case "redis":
 		if cfg.Config == nil {
 			return nil, NewError(ErrConfigNotSet, "redis")
@@ -32,6 +41,11 @@ func New(cfg *typing.Config) (typing.KV, error) {
 // NewMemory returns a new Memory KV.
 func NewMemory() typing.KV {
 	return memory.New()
+}
+
+// NewFileSystem returns a new FileSystem KV.
+func NewFileSystem(cfg ...*fs.FileSystemOptions) (typing.KV, error) {
+	return fs.New(cfg...)
 }
 
 // NewRedis returns a new Redis KV.

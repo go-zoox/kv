@@ -146,13 +146,13 @@ func RunForEachTestCase(t *testing.T, client typing.KV) {
 
 	client.ForEach(func(key string, value interface{}) {
 		if key == "key1" && value != "value1" {
-			t.Error("Expected value to be 'value1'")
+			t.Errorf("Expected value to be 'value1', but got %s", value)
 		}
 		if key == "key2" && value != "value2" {
-			t.Error("Expected value to be 'value2'")
+			t.Errorf("Expected value to be 'value2', but got %s", value)
 		}
 		if key == "key3" && value != "value3" {
-			t.Error("Expected value to be 'value3'")
+			t.Errorf("Expected value to be 'value3', but got %s", value)
 		}
 	})
 }

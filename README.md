@@ -38,6 +38,7 @@ func TestMemoryKV(t *testing.T) {
 * [x] Redis
 * [ ] MongoDB
 * [x] SQLite
+* [x] FileSystem
 * [ ] PostgreSQL
 * [ ] MySQL
 * [ ] DynamoDB
@@ -45,6 +46,7 @@ func TestMemoryKV(t *testing.T) {
 
 ## Inspired by
 * [srfrog/dict](https://github.com/srfrog/dict) - Python-like dictionaries for Go
+* [adelowo/onecache](https://github.com/adelowo/onecache) - One caching API, Multiple backends
 
 ## License
 GoZoox is released under the [MIT License](./LICENSE).
