@@ -8,8 +8,11 @@ import (
 	"github.com/go-zoox/kv/typing"
 )
 
+// KV is the interface for all KV implementations.
+type KV = typing.KV
+
 // New returns a new KV.
-func New(cfg *typing.Config) (typing.KV, error) {
+func New(cfg *typing.Config) (KV, error) {
 	switch cfg.Engine {
 	case "memory":
 		return NewMemory(), nil
@@ -39,21 +42,21 @@ func New(cfg *typing.Config) (typing.KV, error) {
 }
 
 // NewMemory returns a new Memory KV.
-func NewMemory() typing.KV {
+func NewMemory() KV {
 	return memory.New()
 }
 
 // NewFileSystem returns a new FileSystem KV.
-func NewFileSystem(cfg ...*fs.FileSystemOptions) (typing.KV, error) {
+func NewFileSystem(cfg ...*fs.FileSystemOptions) (KV, error) {
 	return fs.New(cfg...)
 }
 
 // NewRedis returns a new Redis KV.
-func NewRedis(cfg *redis.RedisConfig) (typing.KV, error) {
+func NewRedis(cfg *redis.RedisConfig) (KV, error) {
 	return redis.New(cfg)
 }
 
 // NewSQLite returns a new SQLite KV.
-func NewSQLite(cfg *sqlite.SQLiteConfig) (typing.KV, error) {
+func NewSQLite(cfg *sqlite.SQLiteConfig) (KV, error) {
 	return sqlite.New(cfg)
 }
