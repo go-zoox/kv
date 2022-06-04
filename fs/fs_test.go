@@ -7,7 +7,7 @@ import (
 )
 
 func createClient() *FileSystem {
-	client := New()
+	client, _ := New()
 	return client
 }
 

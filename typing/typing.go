@@ -1,9 +1,11 @@
 package typing
 
+import "time"
+
 // KV is a Key-Value Store
 type KV interface {
 	// Set sets the value for the given key.
-	Set(key string, value any, maxAge ...int64) error
+	Set(key string, value any, maxAge ...time.Duration) error
 	// Get returns the value for the given key.
 	Get(key string, value any) error
 	// Delete deletes the value for the given key.

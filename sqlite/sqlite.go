@@ -71,20 +71,18 @@ func (m *SQLite) decodeValue(data []byte, value any) error {
 }
 
 func now() int64 {
-	return time.Now().Unix() * 1000
+	return time.Now().UnixMilli()
 }
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m *SQLite) Set(key string, value any, maxAge ...int64) error {
+func (m *SQLite) Set(key string, value any, maxAge ...time.Duration) error {
 	m.Lock()
 	defer m.Unlock()
 
-	var maxAgeX int64
 	var expiresAt int64
 	if len(maxAge) > 0 {
-		maxAgeX = int64(maxAge[0])
-		expiresAt = now() + maxAgeX
+		expiresAt = now() + int64(maxAge[0]/time.Millisecond)
 	}
 
 	keyX := m.getKey(key)

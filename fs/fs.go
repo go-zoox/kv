@@ -43,12 +43,12 @@ func New(cfg ...*FileSystemOptions) (*FileSystem, error) {
 }
 
 func now() int64 {
-	return time.Now().Unix() * 1000
+	return time.Now().UnixMilli()
 }
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m *FileSystem) Set(key string, value any, maxAge ...int64) error {
+func (m *FileSystem) Set(key string, value any, maxAge ...time.Duration) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -56,7 +56,7 @@ func (m *FileSystem) Set(key string, value any, maxAge ...int64) error {
 
 	expiresAt := int64(0)
 	if len(maxAge) > 0 {
-		expiresAt = now() + maxAge[0]
+		expiresAt = now() + int64(maxAge[0]/time.Millisecond)
 	}
 
 	return m.write(key, &Value{value, expiresAt})

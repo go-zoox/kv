@@ -89,13 +89,13 @@ func (m *Redis) decodeValue(data []byte, value any) error {
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m *Redis) Set(key string, value any, maxAge ...int64) error {
+func (m *Redis) Set(key string, value any, maxAge ...time.Duration) error {
 	m.Lock()
 	defer m.Unlock()
 
-	maxAgeX := 0
+	var maxAgeX time.Duration
 	if len(maxAge) > 0 {
-		maxAgeX = int(maxAge[0])
+		maxAgeX = maxAge[0]
 	}
 
 	keyX := m.getKey(key)
@@ -105,7 +105,7 @@ func (m *Redis) Set(key string, value any, maxAge ...int64) error {
 	}
 
 	if maxAgeX > 0 {
-		return m.Core.Set(m.Ctx, keyX, valueX, time.Duration(maxAgeX)*time.Millisecond).Err()
+		return m.Core.Set(m.Ctx, keyX, valueX, maxAgeX).Err()
 	}
 
 	return m.Core.Set(m.Ctx, keyX, valueX, 0).Err()
