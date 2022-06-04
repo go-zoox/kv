@@ -50,16 +50,37 @@ func now() int64 {
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
 func (m *FileSystem) Set(key string, value any, maxAge ...time.Duration) error {
 	m.Lock()
-	defer m.Unlock()
+	// defer m.Unlock()
 
 	m.ensureDir()
 
 	expiresAt := int64(0)
 	if len(maxAge) > 0 {
 		expiresAt = now() + int64(maxAge[0]/time.Millisecond)
+	} else {
+		m.Unlock()
+
+		if m.Has(key) {
+			// var v Value
+			// if err := m.Get(key, &v); err != nil {
+			// 	return err
+			// }
+
+			// use origin expiresAt
+			v := m.read(key)
+			expiresAt = v.ExpiresAt
+		}
+
+		m.Lock()
 	}
 
-	return m.write(key, &Value{value, expiresAt})
+	if err := m.write(key, &Value{value, expiresAt}); err != nil {
+		m.Unlock()
+		return err
+	}
+
+	m.Unlock()
+	return nil
 }
 
 // Get returns the value for the given key.

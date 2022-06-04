@@ -33,14 +33,30 @@ func now() int64 {
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
 func (m *Memory) Set(key string, value any, maxAge ...time.Duration) error {
 	m.Lock()
-	defer m.Unlock()
+	// defer m.Unlock()
 
 	expiresAt := int64(0)
 	if len(maxAge) > 0 {
 		expiresAt = now() + int64(maxAge[0]/time.Millisecond)
+	} else {
+		m.Unlock()
+
+		if m.Has(key) {
+			// var v Value
+			// if err := m.Get(key, &v); err != nil {
+			// 	return err
+			// }
+
+			// use origin expiresAt
+			v := m.data[key].(Value)
+			expiresAt = v.ExpiresAt
+		}
+
+		m.Lock()
 	}
 
 	m.data[key] = Value{value, expiresAt}
+	m.Unlock()
 	return nil
 }
 

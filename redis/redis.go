@@ -108,7 +108,7 @@ func (m *Redis) Set(key string, value any, maxAge ...time.Duration) error {
 		return m.Core.Set(m.Ctx, keyX, valueX, maxAgeX).Err()
 	}
 
-	return m.Core.Set(m.Ctx, keyX, valueX, 0).Err()
+	return m.Core.Set(m.Ctx, keyX, valueX, goredis.KeepTTL).Err()
 }
 
 // Get returns the value for the given key.

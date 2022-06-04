@@ -78,11 +78,35 @@ func now() int64 {
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
 func (m *SQLite) Set(key string, value any, maxAge ...time.Duration) error {
 	m.Lock()
-	defer m.Unlock()
+	// defer m.Unlock()
 
 	var expiresAt int64
 	if len(maxAge) > 0 {
 		expiresAt = now() + int64(maxAge[0]/time.Millisecond)
+	} else {
+		m.Unlock()
+
+		if m.Has(key) {
+			keyX := m.getKey(key)
+			stmt, err := m.Core.Prepare("SELECT expires_at FROM kv WHERE key = ?")
+			if err != nil {
+				panic(err)
+			}
+
+			res := stmt.QueryRow(keyX)
+			if res.Err() != nil {
+				panic(res.Err())
+			}
+
+			// use origin expiresAt
+			if err := res.Scan(&expiresAt); err != nil {
+				// panic(err)
+				m.RUnlock()
+				return nil
+			}
+		}
+
+		m.Lock()
 	}
 
 	keyX := m.getKey(key)
@@ -100,6 +124,7 @@ func (m *SQLite) Set(key string, value any, maxAge ...time.Duration) error {
 		return err
 	}
 
+	m.Unlock()
 	return nil
 }
 
