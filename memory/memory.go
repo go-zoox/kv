@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -14,7 +15,7 @@ type Memory struct {
 
 // Value is a value of Memory
 type Value struct {
-	Value     any
+	Value     interface{}
 	ExpiresAt int64
 }
 
@@ -31,7 +32,7 @@ func now() int64 {
 
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
-func (m *Memory) Set(key string, value any, maxAge ...time.Duration) error {
+func (m *Memory) Set(key string, value interface{}, maxAge ...time.Duration) error {
 	m.Lock()
 	// defer m.Unlock()
 
@@ -66,7 +67,7 @@ func (m *Memory) Get(key string, value interface{}) error {
 
 	if !m.Has(key) {
 		m.RUnlock()
-		return nil
+		return fmt.Errorf("key %s not found", key)
 	}
 
 	v := m.data[key].(Value)
@@ -74,10 +75,10 @@ func (m *Memory) Get(key string, value interface{}) error {
 
 	if v.ExpiresAt > 0 && v.ExpiresAt < now() {
 		m.Delete(key)
-		return nil
+		return fmt.Errorf("key %s expired", key)
 	}
 
-	reflect.ValueOf(value).Elem().Set(reflect.ValueOf(v.Value))
+	reflect.ValueOf(value).Elem().Set(reflect.ValueOf(v.Value).Elem())
 	return nil
 }
 
