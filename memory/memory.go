@@ -33,15 +33,10 @@ func now() int64 {
 // Set sets the value for the given key.
 // If maxAge is greater than 0, then the value will be expired after maxAge miliseconds.
 func (m *Memory) Set(key string, value interface{}, maxAge ...time.Duration) error {
-	m.Lock()
-	// defer m.Unlock()
-
 	expiresAt := int64(0)
 	if len(maxAge) > 0 {
 		expiresAt = now() + int64(maxAge[0]/time.Millisecond)
 	} else {
-		m.Unlock()
-
 		if m.Has(key) {
 			// var v Value
 			// if err := m.Get(key, &v); err != nil {
@@ -49,27 +44,27 @@ func (m *Memory) Set(key string, value interface{}, maxAge ...time.Duration) err
 			// }
 
 			// use origin expiresAt
+			m.RLock()
 			v := m.data[key].(Value)
+			m.RUnlock()
 			expiresAt = v.ExpiresAt
 		}
-
-		m.Lock()
 	}
 
+	m.Lock()
+	defer m.Unlock()
 	m.data[key] = Value{value, expiresAt}
-	m.Unlock()
+
 	return nil
 }
 
 // Get returns the value for the given key.
 func (m *Memory) Get(key string, value interface{}) error {
-	m.RLock()
-
 	if !m.Has(key) {
-		m.RUnlock()
 		return fmt.Errorf("key %s not found", key)
 	}
 
+	m.RLock()
 	v := m.data[key].(Value)
 	m.RUnlock()
 
@@ -78,6 +73,7 @@ func (m *Memory) Get(key string, value interface{}) error {
 		return fmt.Errorf("key %s expired", key)
 	}
 
+	// reference: https://riptutorial.com/go/example/6073/reflect-value-elem--
 	reflect.ValueOf(value).Elem().Set(reflect.ValueOf(v.Value).Elem())
 	return nil
 }
@@ -94,18 +90,18 @@ func (m *Memory) Delete(key string) error {
 // Has returns true if the given key exists in the kv.
 func (m *Memory) Has(key string) bool {
 	m.RLock()
-
 	_, ok := m.data[key]
+	m.RUnlock()
 	if !ok {
-		m.RUnlock()
 		return false
 	}
 
+	m.RLock()
 	v := m.data[key].(Value)
 	m.RUnlock()
 
 	if v.ExpiresAt > 0 && v.ExpiresAt < now() {
-		delete(m.data, key)
+		m.Delete(key)
 		return false
 	}
 
@@ -123,6 +119,7 @@ func (m *Memory) Keys() []string {
 		keys[i] = k
 		i++
 	}
+
 	return keys
 }
 
