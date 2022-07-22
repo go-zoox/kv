@@ -11,6 +11,9 @@ import (
 // KV is the interface for all KV implementations.
 type KV = typing.KV
 
+// Config is the interface for KV Config.
+type Config = typing.Config
+
 // New returns a new KV.
 func New(cfg *typing.Config) (KV, error) {
 	switch cfg.Engine {
