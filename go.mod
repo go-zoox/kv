@@ -6,7 +6,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-zoox/dotenv v1.1.0
 	github.com/go-zoox/fs v1.2.4
-	github.com/mattn/go-sqlite3 v1.14.12
 )
 
 require (

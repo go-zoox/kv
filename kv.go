@@ -4,7 +4,7 @@ import (
 	"github.com/go-zoox/kv/fs"
 	"github.com/go-zoox/kv/memory"
 	"github.com/go-zoox/kv/redis"
-	"github.com/go-zoox/kv/sqlite"
+
 	"github.com/go-zoox/kv/typing"
 )
 
@@ -33,12 +33,6 @@ func New(cfg *typing.Config) (KV, error) {
 		}
 
 		return NewRedis(cfg.Config.(*redis.RedisConfig))
-	case "sqlite":
-		if cfg.Config == nil {
-			return nil, NewError(ErrConfigNotSet, "sqlite")
-		}
-
-		return NewSQLite(cfg.Config.(*sqlite.SQLiteConfig))
 	default:
 		return nil, NewError(ErrUnknownEngine, cfg.Engine)
 	}
@@ -57,9 +51,4 @@ func NewFileSystem(cfg ...*fs.FileSystemOptions) (KV, error) {
 // NewRedis returns a new Redis KV.
 func NewRedis(cfg *redis.RedisConfig) (KV, error) {
 	return redis.New(cfg)
-}
-
-// NewSQLite returns a new SQLite KV.
-func NewSQLite(cfg *sqlite.SQLiteConfig) (KV, error) {
-	return sqlite.New(cfg)
 }
