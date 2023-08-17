@@ -25,6 +25,8 @@ type RedisConfig struct {
 	Host string
 	// Port is the port of the Redis server
 	Port int
+	// Username is the username for the Redis server
+	Username string
 	// Password is the password for the Redis server
 	Password string
 	// DB is the database to use
