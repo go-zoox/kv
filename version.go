@@ -1,4 +1,4 @@
 package kv
 
 // Version is the current version of the package.
-var Version = "1.5.2"
+var Version = "1.5.3"
