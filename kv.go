@@ -32,7 +32,7 @@ func New(cfg *typing.Config) (KV, error) {
 			return nil, NewError(ErrConfigNotSet, "redis")
 		}
 
-		return NewRedis(cfg.Config.(*redis.RedisConfig))
+		return NewRedis(cfg.Config.(*redis.Config))
 	default:
 		return nil, NewError(ErrUnknownEngine, cfg.Engine)
 	}
@@ -49,6 +49,6 @@ func NewFileSystem(cfg ...*fs.FileSystemOptions) (KV, error) {
 }
 
 // NewRedis returns a new Redis KV.
-func NewRedis(cfg *redis.RedisConfig) (KV, error) {
+func NewRedis(cfg *redis.Config) (KV, error) {
 	return redis.New(cfg)
 }

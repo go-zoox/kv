@@ -17,7 +17,7 @@ func createClient() *Redis {
 
 	redisURI := dotenv.Get("REDIS_URI", "redis://localhost:6379")
 
-	client, err := New(&RedisConfig{
+	client, err := New(&Config{
 		URI:    redisURI,
 		Prefix: "go-zoox-test:",
 	})

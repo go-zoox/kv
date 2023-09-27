@@ -16,11 +16,11 @@ type Redis struct {
 	sync.RWMutex
 	Core   *goredis.Client
 	Ctx    context.Context
-	Config *RedisConfig
+	Config *Config
 }
 
-// RedisConfig is the configuration for Redis
-type RedisConfig struct {
+// Config is the configuration for Redis
+type Config struct {
 	// Host is the host of the Redis server
 	Host string
 	// Port is the port of the Redis server
@@ -41,7 +41,7 @@ type RedisConfig struct {
 }
 
 // New returns a new MemoryKV.
-func New(cfg *RedisConfig) (*Redis, error) {
+func New(cfg *Config) (*Redis, error) {
 	var core *goredis.Client
 	if cfg.URI != "" {
 		opt, err := goredis.ParseURL(cfg.URI)
