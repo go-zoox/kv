@@ -67,7 +67,12 @@ func (m *Memory) Get(key string, value interface{}) error {
 	}
 
 	// reference: https://riptutorial.com/go/example/6073/reflect-value-elem--
-	reflect.ValueOf(value).Elem().Set(reflect.ValueOf(val.Value).Elem())
+	v := reflect.ValueOf(val.Value)
+	if v.IsZero() {
+		return nil
+	}
+
+	reflect.ValueOf(value).Elem().Set(v.Elem())
 	return nil
 }
 

@@ -94,6 +94,37 @@ func RunMainTestCase(t *testing.T, client typing.KV) {
 	if client.Size() != 0 {
 		t.Errorf("Expected size 0, got %d", client.Size())
 	}
+
+	type User struct {
+		Name string
+	}
+	user1 := &User{
+		Name: "Zero",
+	}
+	if err := client.Set("user", user1); err != nil {
+		t.Fatal(err)
+	}
+
+	user2 := &User{}
+	if err := client.Get("user", user2); err != nil {
+		t.Fatal(err)
+	}
+	if user2.Name != user1.Name {
+		t.Fatalf("expect user.name %s, but got %s", user1.Name, user2.Name)
+	}
+
+	var user3 *User = nil
+	if err := client.Set("user", user3); err != nil {
+		t.Fatal(err)
+	}
+
+	user4 := &User{}
+	if err := client.Get("user", user4); err != nil {
+		t.Fatal(err)
+	}
+	if user4.Name != "" {
+		t.Fatalf("expect user.name %s, but got %s", "", user2.Name)
+	}
 }
 
 // RunKeysTestCase tests the keys functionality.
