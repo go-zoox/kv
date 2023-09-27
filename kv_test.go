@@ -25,7 +25,8 @@ func TestKV(t *testing.T) {
 		t.Errorf("Expected size 0, got %d", client.Size())
 	}
 
-	client.Set("key", "value")
+	valueBefore := "value"
+	client.Set("key", &valueBefore)
 	var value string
 	if err := client.Get("key", &value); err != nil || value != "value" {
 		t.Error("Expected value to be 'value'")
