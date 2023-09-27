@@ -68,7 +68,7 @@ func (m *Memory) Get(key string, value interface{}) error {
 
 	// reference: https://riptutorial.com/go/example/6073/reflect-value-elem--
 	v := reflect.ValueOf(val.Value)
-	if v.IsNil() {
+	if v.Kind() == reflect.Ptr && v.IsNil() {
 		return nil
 	}
 
