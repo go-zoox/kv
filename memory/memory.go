@@ -72,7 +72,12 @@ func (m *Memory) Get(key string, value interface{}) error {
 		return nil
 	}
 
-	reflect.ValueOf(value).Elem().Set(v.Elem())
+	dst := reflect.ValueOf(value).Elem()
+	if v.Kind() == reflect.Ptr {
+		dst.Set(v.Elem())
+	} else {
+		dst.Set(v)
+	}
 	return nil
 }
 

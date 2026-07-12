@@ -15,10 +15,11 @@ func RunTestCases(t *testing.T, client typing.KV, casesDisabled ...[]string) {
 	defer client.Clear()
 
 	casesDisabledX := map[string]bool{
-		"main":    true,
-		"keys":    true,
-		"forEach": true,
-		"maxAge":  true,
+		"main":        true,
+		"keys":        true,
+		"forEach":     true,
+		"maxAge":      true,
+		"plainValues": true,
 	}
 	if len(casesDisabled) > 0 {
 		for _, c := range casesDisabled[0] {
@@ -40,6 +41,10 @@ func RunTestCases(t *testing.T, client typing.KV, casesDisabled ...[]string) {
 
 	if casesDisabledX["maxAge"] {
 		RunMaxAgeTestCase(t, client)
+	}
+
+	if casesDisabledX["plainValues"] {
+		RunPlainValuesTestCase(t, client)
 	}
 }
 
@@ -221,5 +226,132 @@ func RunMaxAgeTestCase(t *testing.T, client typing.KV) {
 	client.Get("key1", &value)
 	if client.Has("key1") {
 		t.Errorf("Expected value to be '', but got %s", value)
+	}
+}
+
+// RunPlainValuesTestCase tests Get/Set with plain (non-pointer) values like string, int, bool.
+func RunPlainValuesTestCase(t *testing.T, client typing.KV) {
+	t.Log("Testing plain values test case")
+
+	if err := client.Clear(); err != nil {
+		t.Fatal(err)
+	}
+
+	// plain string
+	if err := client.Set("s", "hello"); err != nil {
+		t.Fatal(err)
+	}
+	var s string
+	if err := client.Get("s", &s); err != nil {
+		t.Fatalf("Get plain string: %v", err)
+	}
+	if s != "hello" {
+		t.Fatalf("expected 'hello', got %q", s)
+	}
+
+	// plain int
+	if err := client.Set("i", 42); err != nil {
+		t.Fatal(err)
+	}
+	var i int
+	if err := client.Get("i", &i); err != nil {
+		t.Fatalf("Get plain int: %v", err)
+	}
+	if i != 42 {
+		t.Fatalf("expected 42, got %d", i)
+	}
+
+	// plain bool
+	if err := client.Set("b", true); err != nil {
+		t.Fatal(err)
+	}
+	var b bool
+	if err := client.Get("b", &b); err != nil {
+		t.Fatalf("Get plain bool: %v", err)
+	}
+	if !b {
+		t.Fatal("expected true")
+	}
+
+	// plain float64
+	if err := client.Set("f", 3.14); err != nil {
+		t.Fatal(err)
+	}
+	var f float64
+	if err := client.Get("f", &f); err != nil {
+		t.Fatalf("Get plain float64: %v", err)
+	}
+	if f != 3.14 {
+		t.Fatalf("expected 3.14, got %f", f)
+	}
+
+	// plain int64
+	if err := client.Set("i64", int64(999)); err != nil {
+		t.Fatal(err)
+	}
+	var i64 int64
+	if err := client.Get("i64", &i64); err != nil {
+		t.Fatalf("Get plain int64: %v", err)
+	}
+	if i64 != 999 {
+		t.Fatalf("expected 999, got %d", i64)
+	}
+
+	// string slice
+	if err := client.Set("ss", []string{"a", "b", "c"}); err != nil {
+		t.Fatal(err)
+	}
+	var ss []string
+	if err := client.Get("ss", &ss); err != nil {
+		t.Fatalf("Get string slice: %v", err)
+	}
+	if len(ss) != 3 || ss[0] != "a" || ss[2] != "c" {
+		t.Fatalf("expected [a b c], got %v", ss)
+	}
+
+	// pointer to pointer (double pointer) should work
+	type User struct{ Name string }
+	user := &User{Name: "Zero"}
+	if err := client.Set("user_ptr", user); err != nil {
+		t.Fatal(err)
+	}
+	var result User
+	if err := client.Get("user_ptr", &result); err != nil {
+		t.Fatalf("Get struct pointer: %v", err)
+	}
+	if result.Name != "Zero" {
+		t.Fatalf("expected Zero, got %q", result.Name)
+	}
+
+	// nil pointer should be retrievable
+	var nilPtr *User = nil
+	if err := client.Set("nil_ptr", nilPtr); err != nil {
+		t.Fatal(err)
+	}
+	var nilResult *User
+	if err := client.Get("nil_ptr", &nilResult); err != nil {
+		t.Fatalf("Get nil pointer: %v", err)
+	}
+	if nilResult != nil {
+		t.Fatal("expected nil result")
+	}
+
+	// overwrite plain with pointer and back
+	if err := client.Set("x", "plain"); err != nil {
+		t.Fatal(err)
+	}
+	var x1 string
+	client.Get("x", &x1)
+	if x1 != "plain" {
+		t.Fatal("expected 'plain'")
+	}
+
+	if err := client.Set("x", &x1); err != nil {
+		t.Fatal(err)
+	}
+	var x2 string
+	client.Get("x", &x2)
+	if x2 != "plain" {
+		t.Fatal("expected 'plain' after pointer set")
 	}
 }
